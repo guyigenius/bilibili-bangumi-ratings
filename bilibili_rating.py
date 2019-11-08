@@ -30,7 +30,7 @@ def bilibili_rating(bangumi_id):
         score = float(data['result']['rating']['score'])
         season_id = int(data['result']['season_id'])
         title = '\"{0}\"'.format(data['result']['title'])
-        publish_year = data['result']['publish']['pub_date']
+        publish_year = '\"{0}\"'.format(data['result']['publish']['pub_date'])
         print(season_id, title, score, count, is_finish, publish_year)
         try:
             lock.acquire(True)
@@ -53,8 +53,8 @@ def bilibili_rating_thread(bangumi_id):
         time.sleep(1)
 
 
-def fetch_bangumi_ids_of_publish_year(year):
-    print('fetching year {}'.format(year))
+def fetch_bangumi_ids_of_publish_year(year, endyear):
+    print('fetching year {} ~ {}'.format(year, endyear))
     api = "https://api.bilibili.com/pgc/season/index/result"
     param = {
         'season_version': 1,
@@ -63,7 +63,7 @@ def fetch_bangumi_ids_of_publish_year(year):
         'copyright':-1,
         'season_status':-1,
         'season_month':-1,
-        'year':'[{},{})'.format(year, year+1),
+        'year':'[{},{})'.format(year, endyear),
         'style_id':-1,
         'order':5,
         'st':1,
@@ -88,8 +88,10 @@ def fetch_bangumi_ids_of_publish_year(year):
 def crawler():
     # Fetch bilibili rating data and write into database
     bangumi_ids = []
-    for x in range(2009,2020):
-        bangumi_ids.extend(fetch_bangumi_ids_of_publish_year(x))
+    bangumi_ids.extend(fetch_bangumi_ids_of_publish_year(2005, 2010))
+    bangumi_ids.extend(fetch_bangumi_ids_of_publish_year(2010, 2015))
+    for x in range(2015,2020):
+        bangumi_ids.extend(fetch_bangumi_ids_of_publish_year(x, x+1))
     thread = []
     groups = [bangumi_ids[i:i+1000] for i in range(0, len(bangumi_ids), 1000)]
     for g in groups:
